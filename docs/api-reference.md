@@ -2,27 +2,43 @@
 
 ## `createIPSocketServer(config: IPSocketConfig)`
 
-Creates and starts a new WebSocket server.
+Initialize the server.
 
-### `IPSocketConfig` Interface
+### `IPSocketConfig`
+- `port`: Port number (default: `process.env.PORT` or `8080`).
+- `redisUrl`: Redis connection string for scaling (optional).
+- `auth`: **Deprecated**, use `server.use()` instead.
 
-| Property | Type | Description |
-| self | --- | --- |
-| `port` | `number` | Port to listen on. Defaults to `process.env.PORT` or `8080`. |
-| `onConnection` | `(ws: WebSocket) => void` | Callback for new connections. |
-| `onMessage` | `(msg: any, ws: WebSocket) => void` | Callback for received messages. |
-| `onDisconnect` | `(ws: WebSocket) => void` | Callback for disconnections. |
-
-### Returns: `IPSocketServer`
-
-The server instance.
+---
 
 ## `IPSocketServer` Class
 
+### Middleware
+- **`use(middleware: (socket, next) => void)`**: Register middleware to run on connection.
+  ```typescript
+  server.use((socket, next) => {
+      console.log('New connection attempt');
+      next();
+  });
+  ```
+
+### Room Management
+- **`join(socket: IPSocket, room: string)`**: Add a socket to a room.
+- **`leave(socket: IPSocket, room: string)`**: Remove a socket from a room.
+
+### Broadcasting
+- **`to(room: string).emit(message: any)`**: Send a message to all sockets in a specific room.
+  - Supports scaling via Redis if configured.
+- **`broadcast(message: any)`**: Send a message to **all** connected sockets.
+
+---
+
+## `IPSocketClient` Class (Client SDK)
+
 ### Methods
+- **`connect()`**: Establish connection to the server.
+- **`send(data: any, callback?: (res) => void)`**: Send a message.
+  - If `callback` is provided, the server must reply with the matching `ackId`.
 
-- **`broadcast(message: any): void`**
-  Sends a message to all connected clients. JSON serializes objects automatically.
-
-- **`close(): void`**
-  Stops the server and closes all connections.
+### Automatic Features
+- **Reconnection**: Automatically retries with exponential backoff on disconnect.
