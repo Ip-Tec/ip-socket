@@ -2,8 +2,12 @@
   "name": "ip-socket",
   "version": "0.0.1",
   "description": "A reusable WebSocket library for easy real-time communication.",
+  "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "ts-node examples/dev-server.ts",
@@ -15,8 +19,12 @@
     "socket",
     "realtime"
   ],
-  "author": "",
+  "author": "Peter Otakhor",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ip-Tec/ip-socket.git"
+  },
   "dependencies": {
     "@types/redis": "^4.0.10",
     "@types/uuid": "^10.0.0",
