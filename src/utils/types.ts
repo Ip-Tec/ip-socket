@@ -4,12 +4,18 @@ import { IncomingMessage } from "http";
 export interface IPSocket extends WebSocket {
   id: string;
   rooms: Set<string>;
+  isAlive: boolean; // For heartbeat
   data?: any; // For storing auth user data
 }
 
 export type AuthMiddleware = (
   info: { req: IncomingMessage },
   next: (result: boolean, code?: number, message?: string) => void,
+) => void;
+
+export type Middleware = (
+  socket: IPSocket,
+  next: (err?: Error) => void,
 ) => void;
 
 export interface IPSocketConfig {

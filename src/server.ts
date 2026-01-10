@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { v4 as uuidv4 } from "uuid";
-import { IPSocketConfig, IPSocket } from "./utils/types";
+import { IPSocketConfig, IPSocket, Middleware } from "./utils/types";
 import { handleConnection } from "./events/connection";
 import { RedisAdapter } from "./adapters/redis";
 
@@ -9,6 +9,7 @@ export class IPSocketServer {
   private config: IPSocketConfig;
   private rooms: Map<string, Set<IPSocket>> = new Map();
   private adapter?: RedisAdapter;
+  private middlewares: Middleware[] = [];
 
   constructor(config: IPSocketConfig) {
     this.config = config;
@@ -27,18 +28,66 @@ export class IPSocketServer {
   }
 
   private init(port: number) {
-    this.wss.on("connection", (ws: WebSocket, req) => {
+    this.wss.on("connection", async (ws: WebSocket, req) => {
       // Enhance WebSocket with IPSocket properties
       const ipWs = ws as IPSocket;
       ipWs.id = uuidv4();
       ipWs.rooms = new Set();
-      ipWs.data = {}; // Can be populated further if we had access to verifyClient context,
-      // but with simple middleware we rely on req usage or custom logic
+      ipWs.isAlive = true;
+      ipWs.data = {};
 
-      handleConnection(ipWs, this.wss, this.config);
+      ipWs.on("pong", () => {
+        ipWs.isAlive = true;
+      });
+
+      // Execute Middleware
+      try {
+        await this.runMiddlewares(ipWs);
+        handleConnection(ipWs, this.wss, this.config);
+      } catch (err) {
+        console.error("Middleware Error:", err);
+        ipWs.close(); // Close connection if middleware fails
+      }
     });
 
+    // Heartbeat Interval
+    const interval = setInterval(() => {
+      this.wss.clients.forEach((ws) => {
+        const ipWs = ws as IPSocket;
+        if (ipWs.isAlive === false) return ws.terminate();
+
+        ipWs.isAlive = false;
+        ws.ping();
+      });
+    }, 30000);
+
+    this.wss.on("close", () => clearInterval(interval));
+
     console.log(`IPSocket Server running on port ${port}`);
+  }
+
+  public use(fn: Middleware) {
+    this.middlewares.push(fn);
+  }
+
+  private runMiddlewares(socket: IPSocket): Promise<void> {
+    return new Promise((resolve, reject) => {
+      let index = 0;
+
+      const next = (err?: Error) => {
+        if (err) return reject(err);
+        if (index >= this.middlewares.length) return resolve();
+
+        const middleware = this.middlewares[index++];
+        try {
+          middleware(socket, next);
+        } catch (e) {
+          reject(e);
+        }
+      };
+
+      next();
+    });
   }
 
   // Room Management
