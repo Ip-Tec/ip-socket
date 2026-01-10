@@ -1,0 +1,32 @@
+{
+  "name": "ip-socket",
+  "version": "0.0.1",
+  "description": "A reusable WebSocket library for easy real-time communication.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node examples/dev-server.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "websocket",
+    "socket",
+    "realtime"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/redis": "^4.0.10",
+    "@types/uuid": "^10.0.0",
+    "redis": "^5.10.0",
+    "uuid": "^13.0.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/ws": "^8.5.13",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}

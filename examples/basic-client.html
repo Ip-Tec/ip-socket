@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IP Socket Client</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #status { font-weight: bold; margin-bottom: 10px; }
+        #messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>IP Socket Client</h1>
+    <div id="status">Disconnected</div>
+    <div id="messages"></div>
+    <input type="text" id="input" placeholder="Type a message...">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:3000');
+        const statusDiv = document.getElementById('status');
+        const messagesDiv = document.getElementById('messages');
+
+        ws.onopen = () => {
+            statusDiv.innerText = 'Connected';
+            statusDiv.style.color = 'green';
+            console.log('Connected');
+        };
+
+        ws.onmessage = (event) => {
+            const msg = document.createElement('div');
+            msg.innerText = `Server: ${event.data}`;
+            messagesDiv.appendChild(msg);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        };
+
+        ws.onclose = () => {
+            statusDiv.innerText = 'Disconnected';
+            statusDiv.style.color = 'red';
+        };
+
+        function sendMessage() {
+            const input = document.getElementById('input');
+            const txt = input.value;
+            if(txt) {
+                // Send simple JSON object or string
+                const payload = { text: txt, type: 'chat' };
+                ws.send(JSON.stringify(payload));
+                
+                const msg = document.createElement('div');
+                msg.innerText = `You: ${JSON.stringify(payload)}`;
+                msg.style.color = 'blue';
+                messagesDiv.appendChild(msg);
+                input.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
