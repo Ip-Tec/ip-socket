@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**The "Nigerian Socket.IO"** 🚀  
+**The "Socket.IO"** 🚀  
 A robust, flexible, and scalable WebSocket library for Node.js.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
